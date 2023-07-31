@@ -36,7 +36,7 @@ export default class App extends React.Component {
 
   // пересборка массива с обновленными объектами
   // берутся объекты До изменённого и после...и собираются в новый массив без измененного
-  toggleProperty = (arr, id, prop) => {
+  toggleTaskRebuild = (arr, id, prop) => {
     const indxElem = arr.findIndex((elem) => elem.id === id);
     const element = arr[indxElem];
 
@@ -51,7 +51,7 @@ export default class App extends React.Component {
   // переключатель статуса complete...тру / фолс...выполнено
   completeTaskHandler = (id) => {
     this.setState((state) => ({
-      items: this.toggleProperty(state.items, id, 'complete'),
+      items: this.toggleTaskRebuild(state.items, id, 'complete'),
     }));
   };
 

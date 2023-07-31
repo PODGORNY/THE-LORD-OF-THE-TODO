@@ -14,11 +14,15 @@ export default class NewTaskForm extends Component {
 
   onSubmit = (e) => {
     e.preventDefault();
+
     // получение функции из пропса...аналог function NewTaskForm({onAddTask})
-    this.props.onAddTask(this.state.label);
-    this.setState({
-      label: '',
-    });
+    // без пробелов не сработает...трим поможет)
+    if (this.state.label.trim()) {
+      this.props.onAddTask(this.state.label);
+      this.setState({
+        label: '',
+      });
+    }
   };
 
   render() {
