@@ -9,14 +9,17 @@ import EditField from './EditField';
 import './Task.css';
 
 const Task = (props) => {
+  // получение данных из TaskList
   const { remove, taskCompleted, setComletedTodos, id, label, min, sec } = props;
 
   const taskDate = new Date();
 
+  // состояния задачи
   const [editing, setEditing] = useState(false);
   const [taskLabel, setTaskLabel] = useState(label || '');
   const [formattedCreateTime, setFormattedCreateTime] = useState(`created ${formatDistanceToNow(taskDate)} ago`);
 
+  // установка класса Выполнено или нет
   const classNames = [taskCompleted ? 'completed' : '', editing ? 'editing' : ''].join(' ');
 
   useEffect(() => {
@@ -29,6 +32,7 @@ const Task = (props) => {
     };
   }, []);
 
+  // редактирование задач
   const onTaskEdit = (e) => setTaskLabel(e.target.value);
   const onEditEnd = () => setEditing((editing) => !editing);
   const removeTask = () => remove(id);
@@ -41,6 +45,7 @@ const Task = (props) => {
     }
   };
 
+  // задача с состовляющими
   return (
     <li className={classNames} key={id}>
       <div className="view">

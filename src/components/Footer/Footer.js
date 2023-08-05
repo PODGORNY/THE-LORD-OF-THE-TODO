@@ -5,8 +5,10 @@ import './Footer.css';
 import TaskFilter from '../TaskFilter/TaskFilter';
 
 const Footer = (props) => {
+  // функции для кнопок фильтра из App
   const { changeFilter, tasks, onClearActive } = props;
 
+  // счётчик
   const [todoCount, setTodoCount] = useState(0);
 
   useEffect(() => {

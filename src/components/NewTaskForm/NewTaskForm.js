@@ -3,11 +3,13 @@ import PropTypes from 'prop-types';
 import './NewTaskForm.css';
 
 const NewTaskForm = ({ saveTodo }) => {
+  // состояния
   const [label, setLabel] = useState('');
   const [id, setId] = useState(100);
   const [sec, setSec] = useState('');
   const [min, setMin] = useState('');
 
+  // отправка введённых данных...обновляет состояния
   const submitHandler = (event) => {
     event.preventDefault();
     saveTodo({ id, label, sec, min });
@@ -47,6 +49,7 @@ const NewTaskForm = ({ saveTodo }) => {
   );
 };
 
+// проверка на тип
 NewTaskForm.propTypes = {
   saveTodo: PropTypes.func,
 };

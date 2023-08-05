@@ -5,8 +5,10 @@ import Task from '../Task/Task';
 import './TaskList.css';
 
 const TaskList = (props) => {
+  // получение данных из APP
   const { remove, tasks, setComletedTodos, filter } = props;
 
+  // фильтр задач
   const filterTasks = (tasks, filter) => {
     if (filter === 'all') {
       return tasks;
@@ -24,7 +26,7 @@ const TaskList = (props) => {
   };
 
   const filteredTasks = filterTasks(tasks, filter);
-
+  // создаётся список задач с передачей каждой свойств
   const taskElems = filteredTasks.map((task) => {
     const taskCompleted = task.completed;
     return (
@@ -32,6 +34,7 @@ const TaskList = (props) => {
     );
   });
 
+  // рендер списка задач
   return <ul className="todo-list">{taskElems}</ul>;
 };
 

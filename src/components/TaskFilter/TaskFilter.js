@@ -3,6 +3,7 @@ import PropTypes from 'prop-types';
 
 import './TaskFilter.css';
 
+// фильтр на кнопки
 const TaskFilter = ({ changeFilter }) => {
   const useFilters = () => {
     const [filters, setFilters] = useState([
@@ -11,6 +12,7 @@ const TaskFilter = ({ changeFilter }) => {
       { label: 'Completed', param: 'completed', active: false },
     ]);
 
+    // выбранная кнопкм фильтра
     const selectFilter = (filterID) => {
       const newFilters = filters.map((filter) => ({
         ...filter,
