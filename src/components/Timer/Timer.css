@@ -1,0 +1,36 @@
+.todo-list li .icon-pause,
+.todo-list li .icon-play {
+  font-size: 20px;
+  width: 18px;
+  height: 18px;
+
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.todo-list li .icon-play {
+  font-size: 20px;
+}
+
+.icon-pause:after {
+  filter: hue-rotate(150deg);
+  opacity: 40%;
+  content: '⏸';
+}
+
+.icon-play:after {
+  content: '▶';
+}
+
+.buttons {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+	margin-left: 5px;
+	
+}
+
+.timer_box{
+	display: flex;
+}
