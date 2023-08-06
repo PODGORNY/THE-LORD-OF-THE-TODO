@@ -12,6 +12,7 @@ export default class App extends React.Component {
   state = {
     items: [],
     activeFilter: 'all',
+    timerTime: false,
     // фильтрация по нажатию кнопок
     filters: [
       { label: 'All', param: 'all', active: true },
@@ -21,17 +22,19 @@ export default class App extends React.Component {
   };
 
   // создание задачи...запись вводных данных функцию создания объекта-----------------------------добавление
-  onAddTask = (label) => {
-    this.setState((state) => ({ items: [this.createTask(label), ...state.items] }));
+  onAddTask = (label, min, sec) => {
+    this.setState((state) => ({ items: [this.createTask(label, min, sec), ...state.items] }));
   };
 
   // создание задачи...добавление объекта с нужными свойствами
-  createTask = (label) => ({
+  createTask = (label, min, sec) => ({
     title: label,
     createTime: new Date(),
     complete: false,
     edit: false,
     id: this.maxId++,
+    minutes: min,
+    seconds: sec,
   });
 
   // пересборка массива с обновленными объектами
@@ -132,6 +135,36 @@ export default class App extends React.Component {
     });
   };
 
+  // таймер...кнопки старт / пауза------------------------------------------------------------------------таймер
+  startTimer = (id) => {
+    if (!this.state.timerTime) {
+      this.timer = setInterval(() => {
+        this.setState(({ items }) => {
+          const idx = items.findIndex((elem) => elem.id === id);
+          const element = items[idx];
+          let newElement = { ...element, seconds: element.seconds - 1 };
+          if (newElement.seconds < 0) {
+            newElement = { ...newElement, minutes: element.minutes - 1, seconds: 59 };
+          }
+          if (newElement.seconds === 0 && newElement.minutes === 0) {
+            clearInterval(this.timer);
+            this.setState({ timerTime: false });
+          }
+          const newArr = [...items.slice(0, idx), newElement, ...items.slice(idx + 1)];
+          return {
+            items: newArr,
+            timerTime: true,
+          };
+        });
+      }, 1000);
+    }
+  };
+
+  pauseTimer = () => {
+    clearInterval(this.timer);
+    this.setState({ timerTime: false });
+  };
+
   render() {
     // беру свойства из банка событий
     const { items, filters } = this.state;
@@ -143,7 +176,7 @@ export default class App extends React.Component {
     return (
       <section className="todoapp">
         <header className="header">
-          <h1>todos</h1>
+          <h1>TODOsTIME</h1>
           <NewTaskForm onAddTask={this.onAddTask} />
         </header>
         <section className="main">
@@ -153,6 +186,8 @@ export default class App extends React.Component {
             onDeleted={this.deleteTaskHandler}
             onEditTaskInput={this.onEditTaskInput}
             onEditTaskOutput={this.onEditTaskOutput}
+            startTimer={this.startTimer}
+            pauseTimer={this.pauseTimer}
           />
         </section>
         <Footer

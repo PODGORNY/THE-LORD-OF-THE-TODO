@@ -2,7 +2,10 @@ import React, { Component } from 'react';
 import { formatDistanceToNow } from 'date-fns';
 import { enUS } from 'date-fns/locale';
 import PropTypes from 'prop-types';
-import './Task.css';
+import classNames from 'classnames/bind';
+
+import styles from './Task.css';
+let lx = classNames.bind(styles);
 
 export default class Task extends Component {
   static defaultProps = {
@@ -11,6 +14,8 @@ export default class Task extends Component {
     id: 100,
     title: '',
     createTime: new Date(),
+    min: 0,
+    sec: 0,
     onComplete: () => {},
     onEditTaskInput: () => {},
     onDeleted: () => {},
@@ -25,11 +30,14 @@ export default class Task extends Component {
     onComplete: PropTypes.func,
     onEditTaskInput: PropTypes.func,
     onDeleted: PropTypes.func,
+    min: PropTypes.number,
+    sec: PropTypes.number,
   };
 
   state = {
     taskLabel: this.props.title,
   };
+
   // описание задачи
   onTaskEdit = (e) => {
     this.setState({
@@ -43,7 +51,9 @@ export default class Task extends Component {
     const { onEditTaskOutput, id } = this.props;
     const { taskLabel } = this.state;
     // изменение задачи...запись отредактированных данных
-    onEditTaskOutput(taskLabel, id);
+    if (taskLabel.trim()) {
+      onEditTaskOutput(taskLabel.trim(), id);
+    }
   };
 
   getEditField = () => {
@@ -60,17 +70,43 @@ export default class Task extends Component {
   };
 
   render() {
-    const { complete, edit, id, title, createTime, onComplete, onEditTaskInput, onDeleted } = this.props;
+    const {
+      complete,
+      edit,
+      id,
+      title,
+      createTime,
+      onComplete,
+      onEditTaskInput,
+      onDeleted,
+      startTimer,
+      pauseTimer,
+      minutes,
+      seconds,
+    } = this.props;
 
-    const classNames = [complete ? 'completed' : '', edit ? 'editing' : ''].join(' '); // переписать?
+    // выбор класса в разметку
+    const classNames = [complete ? 'completed' : '', edit ? 'editing' : ''].join(' ');
+
+    let buttonClass = lx({
+      '': true,
+      complete: 'completed',
+      edit: 'editing',
+    });
 
     return (
       <li className={classNames} key={id}>
         <div className="view">
           <input className="toggle" type="checkbox" id={`${id}__check`} onChange={onComplete} checked={complete} />
           <label htmlFor={`${id}__check`}>
-            <span className="description">{title}</span>
-            <span className="created">
+            <span className="title">{title}</span>
+            <span className="description">
+              <button className="icon icon-play" onClick={startTimer}></button>
+              <button className="icon icon-pause" onClick={pauseTimer}></button>
+              {minutes < 10 ? `0${minutes}` : minutes}:{seconds < 10 ? `0${seconds}` : seconds}
+            </span>
+
+            <span className="description">
               {formatDistanceToNow(createTime, { addSuffix: true, includeSeconds: true, locale: enUS })}
             </span>
           </label>
@@ -78,7 +114,7 @@ export default class Task extends Component {
           <button className="icon icon-destroy" onClick={onDeleted} />
         </div>
 
-        {this.getEditField()}
+        {edit && this.getEditField()}
       </li>
     );
   }
