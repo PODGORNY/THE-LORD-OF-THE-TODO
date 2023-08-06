@@ -1,82 +1,85 @@
-import React, { useState, useEffect } from 'react';
+import React, { Component } from 'react';
 import { formatDistanceToNow } from 'date-fns';
+import { enUS } from 'date-fns/locale';
 import PropTypes from 'prop-types';
-
-import Timer from '../Timer/Timer';
-
-import EditField from './EditField';
-
 import './Task.css';
 
-const Task = (props) => {
-  // получение данных из TaskList
-  const { remove, taskCompleted, setComletedTodos, id, label, min, sec } = props;
+export default class Task extends Component {
+  static defaultProps = {
+    complete: false,
+    edit: false,
+    id: 100,
+    title: '',
+    createTime: new Date(),
+    onComplete: () => {},
+    onEditTaskInput: () => {},
+    onDeleted: () => {},
+  };
 
-  const taskDate = new Date();
+  static propTypes = {
+    complete: PropTypes.bool,
+    edit: PropTypes.bool,
+    id: PropTypes.number,
+    title: PropTypes.string,
+    createTime: PropTypes.instanceOf(Date),
+    onComplete: PropTypes.func,
+    onEditTaskInput: PropTypes.func,
+    onDeleted: PropTypes.func,
+  };
 
-  // состояния задачи
-  const [editing, setEditing] = useState(false);
-  const [taskLabel, setTaskLabel] = useState(label || '');
-  const [formattedCreateTime, setFormattedCreateTime] = useState(`created ${formatDistanceToNow(taskDate)} ago`);
+  state = {
+    taskLabel: this.props.title,
+  };
+  // описание задачи
+  onTaskEdit = (e) => {
+    this.setState({
+      taskLabel: e.target.value,
+    });
+  };
 
-  // установка класса Выполнено или нет
-  const classNames = [taskCompleted ? 'completed' : '', editing ? 'editing' : ''].join(' ');
+  onSubmitHandler = (e) => {
+    e.preventDefault();
+    // получение данных в классе...через пропс...аналог входа в функцию
+    const { onEditTaskOutput, id } = this.props;
+    const { taskLabel } = this.state;
+    // изменение задачи...запись отредактированных данных
+    onEditTaskOutput(taskLabel, id);
+  };
 
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setFormattedCreateTime(`created ${formatDistanceToNow(taskDate)} ago`);
-    }, 60000);
-
-    return () => {
-      clearInterval(interval);
-    };
-  }, []);
-
-  // редактирование задач
-  const onTaskEdit = (e) => setTaskLabel(e.target.value);
-  const onEditEnd = () => setEditing((editing) => !editing);
-  const removeTask = () => remove(id);
-
-  const onCompleteToggle = () => {
-    if (taskCompleted === true) {
-      setComletedTodos(false, id);
-    } else if (taskCompleted === false) {
-      setComletedTodos(true, id);
+  getEditField = () => {
+    // узнаю статус редактирования
+    const { edit } = this.props;
+    if (edit) {
+      return (
+        // форма перед отправкой записывает отредактированные данные
+        <form onSubmit={this.onSubmitHandler}>
+          <input type="text" className="edit" value={this.state.taskLabel} onChange={this.onTaskEdit} />
+        </form>
+      );
     }
   };
 
-  // задача с состовляющими
-  return (
-    <li className={classNames} key={id}>
-      <div className="view">
-        <input
-          className="toggle"
-          type="checkbox"
-          id={`${id}__check`}
-          onChange={onCompleteToggle}
-          checked={taskCompleted}
-        />
-        <label htmlFor={`${id}__check`}>
-          <span className="title">{taskLabel}</span>
-          <Timer min={Number(min)} sec={Number(sec)} />
-          <span className="description">{formattedCreateTime}</span>
-        </label>
-        <button className="icon icon-edit" onClick={() => setEditing(true)} />
-        <button className="icon icon-destroy" onClick={() => removeTask(id)} />
-      </div>
+  render() {
+    const { complete, edit, id, title, createTime, onComplete, onEditTaskInput, onDeleted } = this.props;
 
-      <EditField editing={editing} onTaskEdit={onTaskEdit} onEditEnd={onEditEnd} label={taskLabel} id={id} />
-    </li>
-  );
-};
+    const classNames = [complete ? 'completed' : '', edit ? 'editing' : ''].join(' '); // переписать?
 
-Task.propTypes = {
-  remove: PropTypes.func,
-  taskCompleted: PropTypes.func,
-  setComletedTodos: PropTypes.func,
-  id: PropTypes.number,
-  label: PropTypes.string,
-  min: PropTypes.number,
-  sec: PropTypes.number,
-};
-export default Task;
+    return (
+      <li className={classNames} key={id}>
+        <div className="view">
+          <input className="toggle" type="checkbox" id={`${id}__check`} onChange={onComplete} checked={complete} />
+          <label htmlFor={`${id}__check`}>
+            <span className="description">{title}</span>
+            <span className="created">
+              {formatDistanceToNow(createTime, { addSuffix: true, includeSeconds: true, locale: enUS })}
+            </span>
+          </label>
+          <button className="icon icon-edit" onClick={onEditTaskInput} />
+          <button className="icon icon-destroy" onClick={onDeleted} />
+        </div>
+
+        {this.getEditField()}
+      </li>
+    );
+  }
+}

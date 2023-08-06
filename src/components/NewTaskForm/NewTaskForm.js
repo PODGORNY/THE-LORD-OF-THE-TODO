@@ -1,57 +1,41 @@
-import React, { useState } from 'react';
-import PropTypes from 'prop-types';
+import React, { Component } from 'react';
 import './NewTaskForm.css';
 
-const NewTaskForm = ({ saveTodo }) => {
-  // состояния
-  const [label, setLabel] = useState('');
-  const [id, setId] = useState(100);
-  const [sec, setSec] = useState('');
-  const [min, setMin] = useState('');
-
-  // отправка введённых данных...обновляет состояния
-  const submitHandler = (event) => {
-    event.preventDefault();
-    saveTodo({ id, label, sec, min });
-    setId(id + 1);
-    setLabel('');
-    setSec('');
-    setMin('');
+export default class NewTaskForm extends Component {
+  state = {
+    label: '',
   };
 
-  return (
-    <form className={'new-todo-form'} onSubmit={submitHandler}>
-      <input
-        className="new-todo"
-        placeholder="Task"
-        onChange={(e) => setLabel(e.target.value)}
-        value={label}
-        autoFocus
-      />
-      <input
-        className="new-todo-form__timer"
-        placeholder="Min"
-        onChange={(e) => setMin(e.target.value)}
-        value={min}
-        type={'number'}
-        autoFocus
-      />
-      <input
-        className="new-todo-form__timer"
-        placeholder="Sec"
-        onChange={(e) => setSec(e.target.value)}
-        value={sec}
-        type={'number'}
-        autoFocus
-      />
-      <button type="submit" className="button__form" />
-    </form>
-  );
-};
+  onLabelChange = (e) => {
+    this.setState({
+      label: e.target.value,
+    });
+  };
 
-// проверка на тип
-NewTaskForm.propTypes = {
-  saveTodo: PropTypes.func,
-};
+  onSubmit = (e) => {
+    e.preventDefault();
 
-export default NewTaskForm;
+    // получение функции из пропса...аналог function NewTaskForm({onAddTask})
+    // без пробелов не сработает...трим поможет)
+    if (this.state.label.trim()) {
+      this.props.onAddTask(this.state.label);
+      this.setState({
+        label: '',
+      });
+    }
+  };
+
+  render() {
+    return (
+      <form onSubmit={this.onSubmit}>
+        <input
+          className="new-todo"
+          value={this.state.label}
+          placeholder="What needs to be done?"
+          onChange={this.onLabelChange}
+          autoFocus
+        />
+      </form>
+    );
+  }
+}

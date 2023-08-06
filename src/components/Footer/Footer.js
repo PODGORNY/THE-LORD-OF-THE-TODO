@@ -1,45 +1,34 @@
-import React, { useEffect, useState } from 'react';
+import React, { Component } from 'react';
 import PropTypes from 'prop-types';
-import './Footer.css';
 
 import TaskFilter from '../TaskFilter/TaskFilter';
 
-const Footer = (props) => {
-  // функции для кнопок фильтра из App
-  const { changeFilter, tasks, onClearActive } = props;
+import './Footer.css';
 
-  // счётчик
-  const [todoCount, setTodoCount] = useState(0);
+export default class Footer extends Component {
+  static defaultProps = {
+    activeTaskNumber: 0,
+    onFilter: () => {},
+    onClearСompleted: () => {},
+  };
 
-  useEffect(() => {
-    const count = tasks.filter((el) => !el.completed).length;
+  static propTypes = {
+    activeTaskNumber: PropTypes.number,
+    onFilter: PropTypes.func,
+    onClearСompleted: PropTypes.func,
+  };
 
-    setTodoCount(count);
-  }, [tasks]);
-
-  return (
-    <footer className="footer">
-      <span className="todo-count">{todoCount} items left</span>
-
-      <TaskFilter changeFilter={changeFilter} />
-
-      <button className="clear-completed" onClick={onClearActive}>
-        Clear completed
-      </button>
-    </footer>
-  );
-};
-
-Footer.defaultProps = {
-  changeFilter: () => {},
-  tasks: [],
-  onClearActive: () => {},
-};
-
-Footer.propTypes = {
-  changeFilter: PropTypes.func,
-  tasks: PropTypes.array,
-  onClearActive: PropTypes.func,
-};
-
-export default Footer;
+  render() {
+    const { activeTaskNumber, onFilter, onClearСompleted, filters } = this.props;
+    //Строка 27 -передаем значение фильтра и массив кнопок-фильтров в TaskFilter
+    return (
+      <footer className="footer">
+        <span className="todo-count">{activeTaskNumber} items left</span>
+        <TaskFilter onFilter={onFilter} filters={filters} />
+        <button className="clear-completed" onClick={onClearСompleted}>
+          Clear completed
+        </button>
+      </footer>
+    );
+  }
+}

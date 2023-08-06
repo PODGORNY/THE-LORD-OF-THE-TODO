@@ -1,48 +1,45 @@
-import React from 'react';
+import React, { Component } from 'react';
+// валидатор типа данных...чтобы в строку например я точно знал что приходит строка...штука опциональная
 import PropTypes from 'prop-types';
 
 import Task from '../Task/Task';
 import './TaskList.css';
 
-const TaskList = (props) => {
-  // получение данных из APP
-  const { remove, tasks, setComletedTodos, filter } = props;
-
-  // фильтр задач
-  const filterTasks = (tasks, filter) => {
-    if (filter === 'all') {
-      return tasks;
-    }
-    if (filter === 'completed') {
-      return tasks.filter((task) => {
-        if (task.completed === true) return task;
-      });
-    }
-    if (filter === 'active') {
-      return tasks.filter((task) => {
-        if (task.completed === false) return task;
-      });
-    }
+export default class TaskList extends Component {
+  // defaultProps - просто props по умолчанию, если не было указано других значений
+  static defaultProps = {
+    items: [],
+    onComplete: () => {},
+    onDeleted: () => {},
+    onEditTaskInput: () => {},
+    onEditTaskOutput: () => {},
   };
 
-  const filteredTasks = filterTasks(tasks, filter);
-  // создаётся список задач с передачей каждой свойств
-  const taskElems = filteredTasks.map((task) => {
-    const taskCompleted = task.completed;
-    return (
-      <Task remove={remove} taskCompleted={taskCompleted} setComletedTodos={setComletedTodos} {...task} key={task.id} />
-    );
-  });
+  // проверка на соответствие типам данных
+  static propTypes = {
+    items: PropTypes.array,
+    onComplete: PropTypes.func,
+    onDeleted: PropTypes.func,
+    onEditTaskInput: PropTypes.func,
+    onEditTaskOutput: PropTypes.func,
+  };
 
-  // рендер списка задач
-  return <ul className="todo-list">{taskElems}</ul>;
-};
+  render() {
+    const { items, onComplete, onDeleted, onEditTaskInput, onEditTaskOutput } = this.props;
+    const taskElems = items.map((item) => (
+      <Task
+        {...item}
+        key={item.id}
+        //передаю в функцию помечания выполненной задачи ее id
+        onComplete={() => onComplete(item.id)}
+        //передаю в функцию удаления задачи ее id
+        onDeleted={() => onDeleted(item.id)}
+        //передаю в функцию изменения задачи ее id
+        onEditTaskInput={() => onEditTaskInput(item.id)}
+        onEditTaskOutput={(taskLabel, id) => onEditTaskOutput(taskLabel, id)}
+      />
+    ));
 
-TaskList.propTypes = {
-  remove: PropTypes.func,
-  tasks: PropTypes.array,
-  setComletedTodos: PropTypes.func,
-  filter: PropTypes.string,
-};
-
-export default TaskList;
+    return <ul className="todo-list">{taskElems}</ul>;
+  }
+}
