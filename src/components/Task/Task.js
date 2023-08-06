@@ -2,10 +2,8 @@ import React, { Component } from 'react';
 import { formatDistanceToNow } from 'date-fns';
 import { enUS } from 'date-fns/locale';
 import PropTypes from 'prop-types';
-import classNames from 'classnames/bind';
 
-import styles from './Task.css';
-let lx = classNames.bind(styles);
+import './Task.css';
 
 export default class Task extends Component {
   static defaultProps = {
@@ -87,12 +85,6 @@ export default class Task extends Component {
 
     // выбор класса в разметку
     const classNames = [complete ? 'completed' : '', edit ? 'editing' : ''].join(' ');
-
-    let buttonClass = lx({
-      '': true,
-      complete: 'completed',
-      edit: 'editing',
-    });
 
     return (
       <li className={classNames} key={id}>
