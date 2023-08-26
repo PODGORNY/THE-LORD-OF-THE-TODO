@@ -13,7 +13,7 @@ export default class App extends React.Component {
     items: [],
     activeFilter: 'all',
     timerTime: false,
-    // фильтрация по нажатию кнопок
+    // фильтрация по нажатию кноп
     filters: [
       { label: 'All', param: 'all', active: true },
       { label: 'Active', param: 'active', active: false },
