@@ -1,45 +1,52 @@
-import React from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 
-import Footer from '../Footer/Footer';
 import NewTaskForm from '../NewTaskForm/NewTaskForm';
 import TaskList from '../TaskList/TaskList';
+import Footer from '../Footer/Footer';
 
 import './App.css';
 
-export default class App extends React.Component {
-  maxId = 100;
+export default function App() {
+  const [items, setItems] = useState([]);
+  const [activeFilter, setActiveFilter] = useState('all');
+  const [timerTime, setTimerTime] = useState(false);
+  const [filters, setFilters] = useState([
+    { label: 'All', param: 'all', active: true },
+    { label: 'Active', param: 'active', active: false },
+    { label: 'Completed', param: 'completed', active: false },
+  ]);
+  const ref = useRef();
 
-  state = {
-    items: [],
-    activeFilter: 'all',
-    timerTime: false,
-    // фильтрация по нажатию кнопок
-    filters: [
-      { label: 'All', param: 'all', active: true },
-      { label: 'Active', param: 'active', active: false },
-      { label: 'Completed', param: 'completed', active: false },
-    ],
-  };
+  // срабатывает когда меняется значение в массиве
+  //тут нечему меняться - поэтому срабатывает 1 раз...аналогично ComponentDidMount
+  useEffect(() => {
+    ref.current = 1;
+  }, []);
 
   // создание задачи...запись вводных данных функцию создания объекта-----------------------------добавление
-  onAddTask = (label, min, sec) => {
-    this.setState((state) => ({ items: [this.createTask(label, min, sec), ...state.items] }));
+  const onAddTask = (label, min, sec) => {
+    const newTask = createTask(label, min, sec);
+    setItems((items) => {
+      return [...items, newTask];
+    });
   };
 
   // создание задачи...добавление объекта с нужными свойствами
-  createTask = (label, min, sec) => ({
+  const createTask = (label, min, sec) => ({
     title: label,
     createTime: new Date(),
     complete: false,
     edit: false,
-    id: this.maxId++,
+    id: Math.floor(Math.random() * 100),
     minutes: min,
     seconds: sec,
+    timerId: null,
+    isTimerOn: false,
   });
 
   // пересборка массива с обновленными объектами
   // берутся объекты До изменённого и после...и собираются в новый массив без измененного
-  toggleTaskRebuild = (arr, id, prop) => {
+  const toggleTaskRebuild = (arr, id, prop) => {
     const indxElem = arr.findIndex((elem) => elem.id === id);
     const element = arr[indxElem];
 
@@ -52,31 +59,30 @@ export default class App extends React.Component {
   };
 
   // переключатель статуса complete...тру / фолс...выполнено
-  completeTaskHandler = (id) => {
-    this.setState((state) => ({
-      items: this.toggleTaskRebuild(state.items, id, 'complete'),
-    }));
+  const completeTaskHandler = (id) => {
+    setItems((items) => {
+      return toggleTaskRebuild(items, id, 'complete');
+    });
   };
 
   // редактирование задачи...переключатель статуса редактирования edit------------------------------------------редактирование
   // запрос на редактирование приходит...начальные данные из задачи пойдут в форму для редактирования
-  onEditTaskInput = (id) => {
-    this.setState((state) => {
-      const items = state.items.map((item) => ({
+  const onEditTaskInput = (id) => {
+    setItems((items) => {
+      const editItems = items.map((item) => ({
         ...item,
-        // меняем значение editing на true у задачи, которая меняется ( у которой task.id === id)
         edit: item.id === id,
       }));
 
-      return { items };
+      return editItems;
     });
   };
 
   // редактирование задачи..выводные данные...сборка массива с уже изменёнными свойствами
   // запись отредактированных данных обратно в задачу
-  onEditTaskOutput = (value, id) => {
-    this.setState((state) => {
-      const items = state.items.map((item) => {
+  const onEditTaskOutput = (value, id) => {
+    setItems((items) => {
+      const editItems = items.map((item) => {
         if (item.id !== id) {
           return item;
         } else {
@@ -84,28 +90,27 @@ export default class App extends React.Component {
         }
       });
 
-      return { items };
+      return editItems;
     });
   };
 
   // удаление задачи...убирает объект с 'нажатым' id----------------------------------удаление
-  deleteTaskHandler = (id) => {
-    this.setState(() => ({
-      items: this.state.items.filter((item) => item.id !== id),
-    }));
+  const deleteTaskHandler = (id) => {
+    setItems((items) => {
+      const idx = items.findIndex((item) => item.id === id);
+      return [...items.slice(0, idx), ...items.slice(idx + 1)];
+    });
   };
 
   // удаление выполненых задач разом
-  onClearСompleted = () => {
-    this.setState((state) => ({
-      items: state.items.filter((item) => !item.complete),
-    }));
+  const onClearСompleted = () => {
+    setItems((items) => {
+      return items.filter((item) => !item.complete);
+    });
   };
 
   // фильтр состояния задачи--------------------------------------------------------------условия работы фильтра
-  onFilterTask = () => {
-    const { activeFilter, items } = this.state;
-
+  const onFilterTask = () => {
     // все
     if (activeFilter === 'all') {
       return items;
@@ -121,83 +126,80 @@ export default class App extends React.Component {
   };
 
   // связка фильтра и кнопок, чтоб его вызвать
-  filterHandler = (param) => {
-    this.setState((state) => {
-      const filters = state.filters.map((filter) => ({
+  const filterHandler = (param) => {
+    setFilters((filters) => {
+      const forFilters = filters.map((filter) => ({
         ...filter,
         active: filter.param === param,
       }));
-
-      return {
-        filters,
-        activeFilter: param,
-      };
+      setActiveFilter(param);
+      return forFilters;
     });
   };
 
   // таймер...кнопки старт / пауза------------------------------------------------------------------------таймер
-  startTimer = (id) => {
-    if (!this.state.timerTime) {
-      this.timer = setInterval(() => {
-        this.setState(({ items }) => {
+  const startTimer = (id) => {
+    if (!timerTime) {
+      setTimerTime(true);
+      ref.current = setInterval(() => {
+        setItems((items) => {
           const idx = items.findIndex((elem) => elem.id === id);
+          if (idx === -1) {
+            clearInterval(ref.current);
+            setTimerTime(false);
+            return [...items];
+          }
           const element = items[idx];
           let newElement = { ...element, seconds: element.seconds - 1 };
           if (newElement.seconds < 0) {
             newElement = { ...newElement, minutes: element.minutes - 1, seconds: 59 };
           }
           if (newElement.seconds === 0 && newElement.minutes === 0) {
-            clearInterval(this.timer);
-            this.setState({ timerTime: false });
+            clearInterval(ref.current);
+            setTimerTime(false);
           }
-          const newArr = [...items.slice(0, idx), newElement, ...items.slice(idx + 1)];
-          return {
-            items: newArr,
-            timerTime: true,
-          };
+          return [...items.slice(0, idx), newElement, ...items.slice(idx + 1)];
         });
       }, 1000);
     }
   };
 
-  pauseTimer = () => {
-    clearInterval(this.timer);
-    this.setState({ timerTime: false });
+  const pauseTimer = () => {
+    clearInterval(ref.current);
+    setTimerTime(false);
   };
 
-  render() {
-    // беру свойства из банка событий
-    const { items, filters } = this.state;
-    // фильтр задач...
-    const filterTask = this.onFilterTask();
-    // активные задачи
-    const activeTaskNumber = items.filter((item) => !item.complete).length;
+  // беру свойства из банка событий
+  //const { items, filters } = this.state;
+  // фильтр задач...
+  const filterTask = onFilterTask();
+  // активные задачи
+  const activeTaskNumber = items.filter((item) => !item.complete).length;
 
-    return (
-      <section className="todoapp">
-        <header className="header">
-          <h1>TODOsTIME</h1>
-          <NewTaskForm onAddTask={this.onAddTask} />
-        </header>
-        <section className="main">
-          <TaskList
-            items={filterTask}
-            onComplete={this.completeTaskHandler}
-            onDeleted={this.deleteTaskHandler}
-            onEditTaskInput={this.onEditTaskInput}
-            onEditTaskOutput={this.onEditTaskOutput}
-            startTimer={this.startTimer}
-            pauseTimer={this.pauseTimer}
-          />
-        </section>
-        <Footer
-          activeTaskNumber={activeTaskNumber}
-          onFilter={this.filterHandler}
-          // значения кнопок фильтра
-          filters={filters}
-          onClearСompleted={this.onClearСompleted}
+  return (
+    <section className="todoapp">
+      <header className="header">
+        <h1>TODOsHOOK</h1>
+        <NewTaskForm onAddTask={onAddTask} />
+      </header>
+      <section className="main">
+        <TaskList
+          items={filterTask}
+          onComplete={completeTaskHandler}
+          onDeleted={deleteTaskHandler}
+          onEditTaskInput={onEditTaskInput}
+          onEditTaskOutput={onEditTaskOutput}
+          startTimer={startTimer}
+          pauseTimer={pauseTimer}
         />
       </section>
-    );
-  }
+      <Footer
+        activeTaskNumber={activeTaskNumber}
+        onFilter={filterHandler}
+        // значения кнопок фильтра
+        filters={filters}
+        onClearСompleted={onClearСompleted}
+      />
+    </section>
+  );
 }
