@@ -167,6 +167,10 @@ export default function App() {
                 min -= 1;
                 sec = 59;
               }
+              if (sec < 0) {
+                min = 0;
+                sec = 0;
+              }
               if (min === 0 && sec < 0) {
                 sec = 0;
                 pauseTimer(id);
