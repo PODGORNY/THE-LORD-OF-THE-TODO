@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useState } from 'react';
 
 import NewTaskForm from '../NewTaskForm/NewTaskForm';
 import TaskList from '../TaskList/TaskList';
@@ -7,6 +7,7 @@ import Footer from '../Footer/Footer';
 import './App.css';
 
 export default function App() {
+  const [uniqId, setUniqId] = useState(0);
   const [items, setItems] = useState([]);
   const [activeFilter, setActiveFilter] = useState('all');
   const [timerTime, setTimerTime] = useState(false);
@@ -15,13 +16,6 @@ export default function App() {
     { label: 'Active', param: 'active', active: false },
     { label: 'Completed', param: 'completed', active: false },
   ]);
-  const ref = useRef();
-
-  // срабатывает когда меняется значение в массиве
-  //тут нечему меняться - поэтому срабатывает 1 раз...аналогично ComponentDidMount
-  useEffect(() => {
-    ref.current = 1;
-  }, []);
 
   // создание задачи...запись вводных данных функцию создания объекта-----------------------------добавление
   const onAddTask = (label, min, sec) => {
@@ -32,17 +26,20 @@ export default function App() {
   };
 
   // создание задачи...добавление объекта с нужными свойствами
-  const createTask = (label, min, sec) => ({
-    title: label,
-    createTime: new Date(),
-    complete: false,
-    edit: false,
-    id: Math.floor(Math.random() * 100),
-    minutes: min,
-    seconds: sec,
-    timerId: null,
-    isTimerOn: false,
-  });
+  const createTask = (label, min, sec) => {
+    setUniqId(uniqId + 1);
+    return {
+      title: label,
+      createTime: new Date(),
+      complete: false,
+      edit: false,
+      id: uniqId,
+      minutes: min,
+      seconds: sec,
+      timerId: null,
+      isTimerOn: false,
+    };
+  };
 
   // пересборка массива с обновленными объектами
   // берутся объекты До изменённого и после...и собираются в новый массив без измененного
@@ -138,39 +135,67 @@ export default function App() {
   };
 
   // таймер...кнопки старт / пауза------------------------------------------------------------------------таймер
-  const startTimer = (id) => {
-    if (!timerTime) {
-      setTimerTime(true);
-      ref.current = setInterval(() => {
-        setItems((items) => {
-          const idx = items.findIndex((elem) => elem.id === id);
-          if (idx === -1) {
-            clearInterval(ref.current);
-            setTimerTime(false);
-            return [...items];
-          }
-          const element = items[idx];
-          let newElement = { ...element, seconds: element.seconds - 1 };
-          if (newElement.seconds < 0) {
-            newElement = { ...newElement, minutes: element.minutes - 1, seconds: 59 };
-          }
-          if (newElement.seconds === 0 && newElement.minutes === 0) {
-            clearInterval(ref.current);
-            setTimerTime(false);
-          }
-          return [...items.slice(0, idx), newElement, ...items.slice(idx + 1)];
-        });
-      }, 1000);
+  const pauseTimer = (id) => {
+    const { isTimerOn } = items.find((item) => item.id === id);
+    if (isTimerOn) {
+      const { timerId } = items.find((item) => item.id === id);
+      setItems((prevData) => {
+        const idx = prevData.findIndex((item) => item.id === id);
+        const data = [...prevData];
+        data[idx].isTimerOn = false;
+
+        return data;
+      });
+      clearInterval(timerId);
     }
   };
 
-  const pauseTimer = () => {
-    clearInterval(ref.current);
-    setTimerTime(false);
+  const startTimer = (id) => {
+    const { isTimerOn } = items.find((item) => item.id === id);
+
+    if (!isTimerOn) {
+      const timerId = setInterval(() => {
+        setItems((prevData) => {
+          const updateTodo = prevData.map((todoItem) => {
+            if (todoItem.id === id) {
+              if (todoItem.seconds === 0 && todoItem.minutes === 0) {
+                pauseTimer(id);
+              }
+              let sec = todoItem.seconds - 1;
+              let min = todoItem.minutes;
+              if (min > 0 && sec < 0) {
+                min -= 1;
+                sec = 59;
+              }
+              if (min === 0 && sec < 0) {
+                sec = 0;
+                pauseTimer(id);
+              }
+
+              return {
+                ...todoItem,
+                seconds: sec,
+                minutes: min,
+              };
+            }
+
+            return todoItem;
+          });
+
+          return updateTodo;
+        });
+      }, 1000);
+      setItems((prevData) => {
+        const idx = prevData.findIndex((item) => item.id === id);
+        const data = [...prevData];
+        data[idx].timerId = timerId;
+        data[idx].isTimerOn = true;
+
+        return data;
+      });
+    }
   };
 
-  // беру свойства из банка событий
-  //const { items, filters } = this.state;
   // фильтр задач...
   const filterTask = onFilterTask();
   // активные задачи
