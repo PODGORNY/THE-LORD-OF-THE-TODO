@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { formatDistanceToNow } from 'date-fns';
 import { enUS } from 'date-fns/locale';
 import PropTypes from 'prop-types';
@@ -32,12 +32,13 @@ export default function Task(props) {
   const onSubmitHandler = (e) => {
     e.preventDefault();
     // изменение задачи...запись отредактированных данных
-    if (taskLabel.trim()) {
+    if (taskLabel.trim() || e.key === 'Escape') {
       onEditTaskOutput(taskLabel.trim(), id);
     }
   };
 
   // выбор класса в разметку
+  // по нажатию Esc - complete и edit = false, поэтому ставится класс '' и форма редактирования пропадает
   const classNames = [complete ? 'completed' : '', edit ? 'editing' : ''].join(' ');
 
   return (

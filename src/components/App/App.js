@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 
 import NewTaskForm from '../NewTaskForm/NewTaskForm';
 import TaskList from '../TaskList/TaskList';
@@ -40,6 +40,31 @@ export default function App() {
       isTimerOn: false,
     };
   };
+
+  // при ESC - окно редактирования закрывается
+  // classNames переключается на ''...чтобы отключить форму
+  useEffect(() => {
+    const handleEsc = (event) => {
+      if (event.key === 'Escape') {
+        console.log('Close');
+        //setClassNames('');
+        setItems((items) => {
+          const editItems = items.map((item) => ({
+            ...item,
+            complete: false,
+            edit: false,
+          }));
+
+          return editItems;
+        });
+      }
+    };
+    window.addEventListener('keydown', handleEsc);
+
+    return () => {
+      window.removeEventListener('keydown', handleEsc);
+    };
+  }, []);
 
   // пересборка массива с обновленными объектами
   // берутся объекты До изменённого и после...и собираются в новый массив без измененного
