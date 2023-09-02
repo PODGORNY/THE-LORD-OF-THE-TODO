@@ -37,6 +37,13 @@ export default function Task(props) {
     }
   };
 
+  // клик в сторону - форма редактирования закрылась
+  // аналогично можно сделать и любую кнопку например
+  const onBlurClick = () => {
+    setTaskLabel(title);
+    onEditTaskOutput(title, id);
+  };
+
   // выбор класса в разметку
   // по нажатию Esc - complete и edit = false, поэтому ставится класс '' и форма редактирования пропадает
   const classNames = [complete ? 'completed' : '', edit ? 'editing' : ''].join(' ');
@@ -62,7 +69,7 @@ export default function Task(props) {
       </div>
       {edit && (
         <form onSubmit={onSubmitHandler}>
-          <input type="text" className="edit" value={taskLabel} onChange={onTaskEdit} autoFocus />
+          <input type="text" className="edit" value={taskLabel} onChange={onTaskEdit} onBlur={onBlurClick} autoFocus />
         </form>
       )}
     </li>
